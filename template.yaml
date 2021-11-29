@@ -1,0 +1,43 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: template-shell-poc
+  title: Shell Action PoC
+  description: TestBed for shell action
+spec:
+  owner: dts_platform_operations
+  type: service
+  parameters:
+    - title: Choose a location
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repository Location
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+
+  steps:
+    - id: template
+      name: Fetch Skeleton + Template
+      action: fetch:template
+      input:
+        url: ./skeleton
+    - id: process
+      name: Run script
+      action: hmcts:script
+      input:
+        scriptPath: hooks/post-execute.sh
+    - id: publish
+      name: Publish
+      action: publish:github
+      input:
+        allowedHosts: ['github.com']
+        repoUrl: ${{ parameters.repoUrl }}
+        repoVisibility: public
+  output:
+    remoteUrl: '${{ steps.publish.output.remoteUrl }}'
+    entityRef: '${{ steps.register.output.entityRef }}'
